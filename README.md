@@ -1,78 +1,75 @@
-# Интеграция с Яндекс Картами (Тестовое задание)
+# Yandex Maps Reviews Aggregator (Test Assignment)
 
-SPA-приложение на стеке **Laravel + Vue 3 (Inertia.js)** для агрегации отзывов с Яндекс Карт. Реализован функционал подключения площадки, просмотра отзывов с пагинацией, расчета статистики и сортировки.
+A Single Page Application (SPA) built with Laravel and Vue 3 (Inertia.js) to aggregate and display reviews from Yandex Maps. It features platform connection, review pagination, statistics calculation, and dynamic sorting.
 
-## Стек технологий
-* **Backend:** Laravel 11, PHP 8.x, MySQL/PostgreSQL
+## 🛠 Tech Stack
+
+* **Backend:** PHP 8.x, Laravel 11, MySQL/PostgreSQL
 * **Frontend:** Vue 3 (Composition API), Inertia.js, Tailwind CSS
-* **Auth:** Laravel Breeze
+* **Authentication:** Laravel Breeze
 
-## Функционал
-* Авторизация (Login / Register).
-* Страница "Настройка": форма добавления ссылки на организацию в Яндекс Картах.
-* Страница "Отзывы":
-    * Вывод списка отзывов (имя, аватар, дата, оценка, текст).
-    * Вывод общего рейтинга компании и количества отзывов.
-    * Постраничная навигация (Пагинация).
-    * Сортировка отзывов по новизне (сначала новые / сначала старые).
-* **Логика перезаписи:** При добавлении новой ссылки старые отзывы текущего пользователя удаляются, и загружаются новые (в рамках транзакции БД).
+## 🚀 Key Features
 
-## Особенности парсинга (Mock Data)
-Так как Яндекс Карты (React SPA) используют агрессивную защиту от ботов (SmartCaptcha), которая блокирует автоматические запросы от Headless-браузеров (Puppeteer/Browsershot) и PHP (Guzzle/Crawler), в рамках данного тестового задания **реализован Mock-сервис генерации отзывов**.
+* **Authentication:** User login and registration.
+* **Settings Page:** A form to connect and add a Yandex Maps organization link.
+* **Reviews Page:** Displays reviews (name, avatar, date, rating, text), overall company rating, and total review count. Includes pagination and date sorting (newest/oldest).
+* **Overwrite Logic:** Adding a new link securely deletes the user's old reviews and fetches new ones within a database transaction.
 
-Вся архитектура приложения (роутинг, контроллеры, сервисы, сохранение в БД, транзакции и вывод на фронт) полностью подготовлена под работу с реальным API Яндекса или парсером.
+## 🚧 Parsing Details & Mock Architecture
 
-При отправке любой ссылки на Яндекс Карты, сервис `App\Services\YandexParser` имитирует задержку сети и генерирует реалистичный набор данных (15-30 отзывов), которые сохраняются в БД.
+Yandex Maps utilizes aggressive bot protection (SmartCaptcha) that blocks automated scraping from Headless browsers (Puppeteer/Browsershot) or PHP clients (Guzzle/Crawler). To bypass this for the scope of this test assignment, a **Mock Service** for data generation was implemented.
 
-##  Инструкция по развертыванию локально
+* The entire application architecture (routing, controllers, services, DB transactions, and frontend rendering) is **fully production-ready** and structured to easily integrate a real API or scraper.
+* Submitting a link triggers `App\Services\YandexParser`, which simulates network latency and generates a realistic dataset (15-30 reviews) that is saved directly to the database.
 
-1. Склонируйте репозиторий:
-   ```bash
-   git clone <URL_вашего_репозитория>
-   cd <название_папки>
+## ⚙️ Local Installation & Setup
 
-2. Установите зависимости PHP и Node.js:
+1. Clone the repository and install dependencies:
+```bash
+git clone <YOUR_REPOSITORY_URL>
+cd <FOLDER_NAME>
+composer install
+npm install
+```
 
-   ```Bash
-   composer install
-   npm install
+2. Configure environment variables:
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-3. Настройте файл окружения:
+3. Run migrations and seed the database (this will create a test user):
+```bash
+php artisan migrate --seed
+```
 
-   ```Bash
-   cp .env.example .env
-   php artisan key:generate
+4. Start the local server and frontend build tool in two separate terminal windows:
 
-4. Выполните миграции и сиды (создаст тестового пользователя):
+**Terminal 1:**
+```bash
+php artisan serve
+```
 
-   ```Bash
-   php artisan migrate --seed
+**Terminal 2:**
+```bash
+npm run dev
+```
 
-5. Запустите локальный сервер и сборщик фронтенда:
+## 🔐 Test Access
 
-   ```Bash
-   # Терминал 1:
-   artisan serve
+Running the database seeder automatically creates a test account for quick access:
+* **Email:** admin@admin.com
+* **Password:** password
 
-   # Терминал 2:
-   npm run dev
+## 🌍 Production Deployment (VDS/VPS)
 
-## Тестовый доступ
-После запуска сидера (--seed) в базе автоматически создается пользователь для проверки:
+1. Clone the repository to your server.
+2. Install PHP dependencies optimized for production: `composer install --optimize-autoloader --no-dev`
+3. Build frontend assets: `npm install && npm run build`
+4. Configure Nginx to point the root to the `/public` directory, routing all requests through `index.php`.
+5. Ensure the web server (e.g., `www-data`) has write permissions for the storage and cache directories:
+```bash
+chown -R www-data:www-data storage bootstrap/cache
+```
 
-Email: admin@admin.com
-
-Пароль: password
-
-
-## Для развертывания на продакшене (VDS):
-
-Склонировать репозиторий.
-
-Выполнить composer install --optimize-autoloader --no-dev.
-
-Выполнить сборку фронтенда: npm install && npm run build.
-
-Настроить Nginx так, чтобы root указывал на папку public проекта, а все запросы шли через index.php.
-
-Убедиться, что папки storage и bootstrap/cache доступны для записи веб-серверу (например, chown -R www-data:www-data storage).
+````</FOLDER_NAME></YOUR_REPOSITORY_URL>
