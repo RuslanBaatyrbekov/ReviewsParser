@@ -1,4 +1,6 @@
-# Yandex Maps Reviews Aggregator (Test Assignment)
+# Yandex Maps Reviews Aggregator
+
+[![tests](https://github.com/RuslanBaatyrbekov/ReviewsParser/actions/workflows/tests.yml/badge.svg)](https://github.com/RuslanBaatyrbekov/ReviewsParser/actions/workflows/tests.yml)
 
 A Single Page Application (SPA) built with Laravel and Vue 3 (Inertia.js) to aggregate and display reviews from Yandex Maps. It features platform connection, review pagination, statistics calculation, and dynamic sorting.
 
@@ -15,19 +17,20 @@ A Single Page Application (SPA) built with Laravel and Vue 3 (Inertia.js) to agg
 * **Reviews Page:** Displays reviews (name, avatar, date, rating, text), overall company rating, and total review count. Includes pagination and date sorting (newest/oldest).
 * **Overwrite Logic:** Adding a new link securely deletes the user's old reviews and fetches new ones within a database transaction.
 
-## 🚧 Parsing Details & Mock Architecture
+## 🧩 Review Source & Mock Data
 
-Yandex Maps utilizes aggressive bot protection (SmartCaptcha) that blocks automated scraping from Headless browsers (Puppeteer/Browsershot) or PHP clients (Guzzle/Crawler). To bypass this for the scope of this test assignment, a **Mock Service** for data generation was implemented.
+Yandex Maps protects organisation pages with SmartCaptcha, which blocks headless browsers and plain HTTP clients. Instead of fighting the bot protection, the app talks to a `App\Contracts\ReviewSource` interface:
 
-* The entire application architecture (routing, controllers, services, DB transactions, and frontend rendering) is **fully production-ready** and structured to easily integrate a real API or scraper.
-* Submitting a link triggers `App\Services\YandexParser`, which simulates network latency and generates a realistic dataset (15-30 reviews) that is saved directly to the database.
+* `App\Services\YandexParser` is the current **mock implementation**: it simulates network latency and generates a realistic dataset (15–30 reviews).
+* Plugging in an official API or a licensed data provider means writing one more `ReviewSource` implementation and changing a single binding in `AppServiceProvider` — controllers, DB transactions and the Vue UI stay untouched.
+* Only Yandex Maps links are accepted; importing a new link replaces the user's previous reviews inside a single database transaction.
 
 ## ⚙️ Local Installation & Setup
 
 1. Clone the repository and install dependencies:
 ```bash
-git clone <YOUR_REPOSITORY_URL>
-cd <FOLDER_NAME>
+git clone https://github.com/RuslanBaatyrbekov/ReviewsParser.git
+cd ReviewsParser
 composer install
 npm install
 ```
@@ -72,4 +75,11 @@ Running the database seeder automatically creates a test account for quick acces
 chown -R www-data:www-data storage bootstrap/cache
 ```
 
-````</FOLDER_NAME></YOUR_REPOSITORY_URL>
+## ✅ Tests
+
+```bash
+php artisan test
+```
+
+Feature tests cover the reviews page (per-user isolation, statistics, pagination, sorting) and the import flow (replacement in a transaction, empty results, URL validation, auth) using a fake `ReviewSource`. Set `YANDEX_MOCK_DELAY=0` in `.env` to skip the simulated latency locally.
+
