@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -25,6 +24,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings', [ReviewController::class, 'settings'])->name('settings.index');
     Route::post('/settings', [ReviewController::class, 'store'])->name('settings.store');
 });
-
 
 require __DIR__.'/auth.php';

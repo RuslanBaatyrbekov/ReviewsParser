@@ -1,9 +1,11 @@
 <?php
+
 namespace App\Http\Controllers;
 
+use App\Contracts\ReviewSource;
 use App\Models\Review;
-use App\Services\YandexParser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ReviewController extends Controller
@@ -21,7 +23,7 @@ class ReviewController extends Controller
 
         $stats = [
             'total_reviews' => Review::where('user_id', auth()->id())->count(),
-            'average_rating' => round(Review::where('user_id', auth()->id())->avg('rating'), 1) ?? 0,
+            'average_rating' => round((float) Review::where('user_id', auth()->id())->avg('rating'), 1),
         ];
 
         return Inertia::render('Reviews/Index', [
@@ -36,19 +38,21 @@ class ReviewController extends Controller
         return Inertia::render('Settings/Integration');
     }
 
-    public function store(Request $request, YandexParser $parser)
+    public function store(Request $request, ReviewSource $parser)
     {
-        $request->validate(['url' => 'required|url']);
+        $request->validate([
+            'url' => ['required', 'url', 'regex:/^https?:\/\/(www\.)?yandex\.[a-z.]+\/maps\//i'],
+        ]);
 
         set_time_limit(180);
 
         $data = $parser->parse($request->url);
 
-        if (!$data || empty($data['reviews'])) {
+        if (! $data || empty($data['reviews'])) {
             return back()->withErrors(['url' => 'Отзывы не найдены или Яндекс заблокировал запрос (Captcha).']);
         }
 
-        \DB::transaction(function () use ($data, $request) {
+        DB::transaction(function () use ($data, $request) {
 
             Review::where('user_id', auth()->id())->delete();
 

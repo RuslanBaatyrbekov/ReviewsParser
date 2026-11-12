@@ -2,19 +2,25 @@
 
 namespace App\Services;
 
+use App\Contracts\ReviewSource;
 use Carbon\Carbon;
 
-class YandexParser
+class YandexParser implements ReviewSource
 {
+    public function __construct(
+        private readonly int $delaySeconds = 2,
+    ) {}
+
     /**
-     * Парсинг отзывов.
-     * Так как Яндекс Карты используют жесткую защиту SmartCaptcha против Headless-браузеров,
-     * в рамках тестового задания реализована генерация Mock-данных.
-     * Архитектура (сохранение, транзакции, вывод) полностью готова под реальное API или парсер.
+     * Mock implementation of the review source.
+     *
+     * Yandex Maps protects its pages with SmartCaptcha, so for this assignment the source
+     * generates realistic demo data instead of scraping. Swapping in a real API client only
+     * requires another ReviewSource implementation bound in AppServiceProvider.
      */
-    public function parse(string $url)
+    public function parse(string $url): array
     {
-        sleep(2);
+        sleep($this->delaySeconds);
 
         $reviewsCount = rand(15, 30);
         $reviews = [];
@@ -27,7 +33,7 @@ class YandexParser
             'Ужасно. Ждали заказ 40 минут. Больше ни ногой.',
             'Прекрасная атмосфера и вежливый персонал. Рекомендую всем друзьям.',
             'Обычное кафе, ничего выдающегося. Цены немного завышены.',
-            'Очень уютно. Идеально для бизнес-ланча или встречи с друзьями.'
+            'Очень уютно. Идеально для бизнес-ланча или встречи с друзьями.',
         ];
 
         for ($i = 0; $i < $reviewsCount; $i++) {
@@ -36,17 +42,17 @@ class YandexParser
                 'text' => $texts[array_rand($texts)],
                 'rating' => rand(1, 10) > 2 ? rand(4, 5) : rand(1, 3),
                 'date' => Carbon::now()->subDays(rand(1, 90)),
-                'avatar' => rand(0, 1) ? 'https://i.pravatar.cc/150?u=' . rand(1, 1000) : null,
+                'avatar' => rand(0, 1) ? 'https://i.pravatar.cc/150?u='.rand(1, 1000) : null,
             ];
         }
 
-        usort($reviews, function($a, $b) {
+        usort($reviews, function ($a, $b) {
             return $b['date'] <=> $a['date'];
         });
 
         return [
             'reviews' => $reviews,
-            'count' => count($reviews)
+            'count' => count($reviews),
         ];
     }
 }
